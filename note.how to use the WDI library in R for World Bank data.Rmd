@@ -10,7 +10,118 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+setwd(getwd())
+library(WDI)
+library(ggplot2)
+library(plotly)
+library(dplyr)
 ```
 
-## R Markdown
+<style type="text/css">
+h1 {color:#1e1a51}
+h2 {color:#ffbd4a}
+h3 {color:#1a2451}
+</style>
+
+## Introduction 
+
+The WorldBank(R) provides open data for hundreds of indicators.  These indicators are available for most countries spanning many years.  You can learn more at https://datacatalog.worldbank.org/ 
+
+The `WDI` library provides easy access to the data. 
+
+## Looking up an indicator 
+
+The World Bank data that is available through this API provides many variable including _iso2c_ country codes, names of the variables, and many more.  The `WDISearch()` command allows strings to be searched for in these variables.  In the code block below a search for _maternal mortality ratio_ is made in the _name_ variable.
+
+```{r looking for indicator}
+WDIsearch(string = "maternal mortality ratio", 
+          field = "name",
+          short = FALSE)
+```
+
+## Looking for the data
+
+You could get more information via `?WDI`
+```{r searching for the data}
+df <- data.frame(
+  WDI(country= c("US","BR","ZA"), 
+    indicator="SH.STA.MMRT",
+    start=2005, end=2015,extra = FALSE))
+head(df)
+```
+
+the full list of variables is shown below 
+```{r}
+names(WDI(country = "US",
+          indicator = "SH.STA.MMRT",
+          start = 1990,
+          end = 2020, 
+          extra = TRUE))
+```
+
+## Filtering data 
+we could use `filter()` to subset data from the dataset  
+
+```{r}
+brazil <- df %>% filter(iso2c == "BR")
+usa <- df %>% filter(iso2c == "US")
+za <- df %>% filter(iso2c == "ZA")
+```
+
+## Plotting the data 
+
+the code block creates three traces for a single plot using `plotly()`
+
+```{r}
+trace0 <- brazil$SH.STA.MMRT
+trace1 <- usa$SH.STA.MMRT
+trace2 <- za$SH.STA.MMRT
+dts <- brazil$year
+df.plot <- data.frame(dts,trace0,trace1, trace2)
+
+p1 <- plot_ly(df.plot,
+              x = ~dts,
+              y = ~trace0,
+              name = "Brazil",
+              type = "scatter",
+              mode = "lines+markers") %>% 
+  add_trace(y = ~trace1,
+            name = "USA",
+            type = "scatter",
+            mode = "lines+markers") %>% 
+  add_trace(y = ~trace2,
+            name = "RSA",
+            type = "scatter",
+            mode = "lines+markers")%>% 
+  layout(title = "Maternal mortality per 100,000 births",
+         xaxis = list(title = "Year",
+                      zeroline = FALSE),
+         yaxis = list(title = "Count",
+                      zeroline = FALSE))
+p1
+```
+
+## Using ggplot to plot the data
+
+the idea is to comparing if `ggplot2` could also plot the data as `plotly()`
+
+```{r ggplot2 packages}
+plot2 <- df %>% 
+  ggplot(aes(x = year, y = SH.STA.MMRT, color = iso2c)) +
+  geom_line()+
+  geom_point()+
+  scale_x_discrete(limits = c(2005:2015))+# change the x_scale 
+  ggtitle("Maternal mortality per 100,000 births")+
+  xlab("Year")+
+  ylab("Count")
+  
+plot2
+```
+
+## Conclusion
+
+The WDI library is extremely easy to use, yet powerful enough to bring a massive open data resource to you desktop.  Learn more about it at: https://cran.r-project.org/web/packages/WDI/WDI.pdf 
+
+If you would like to know more about maternal mortality rates in South Africa, you can view this issue of the South African Medical Journal: http://www.samj.org.za/index.php/samj/issue/view/215/showToc 
+
 
