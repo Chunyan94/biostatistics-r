@@ -1,0 +1,16 @@
+---
+title: "note.How to use the WDI library in R for World Bank data"
+author: "JI"
+date: "6/1/2021"
+output:
+  html_document:
+   toc: true
+   number_sections: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
